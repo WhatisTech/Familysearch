@@ -5,20 +5,20 @@ from shared.name_extractor import extract
 from shared.indexer import index
 
 @click.command()
-@click.argument("start_url")
-@click.option("--limit", default=3, help="max files")
-def run(start_url, limit):
-    dest = pathlib.Path("data/download")
-    for url, kind in yield_links(start_url):
-        file = download(url, dest / (hashlib.md5(url.encode()).hexdigest() + f".{kind}"))
-        text = route(file)
-        persons = extract(text)
-        if persons:
-            index(persons)
-            print("indexed", len(persons), "from", url)
-        limit -= 1
-        if not limit: break
+@click.option("--demo", is_flag=True, help="index dummy data")
+def demo(demo):
+    if demo:
+        dummy = [
+            {"given": ["Jan"], "surname": "Novák", "year": 1903,
+             "raw": "Novák, Jan 1903 teacher Veľký Krtíš", "page_url": "#", "confidence": 0.94},
+            {"given": ["Anna"], "surname": "Novák", "year": 1900,
+             "raw": "Novák, Anna 1900", "page_url": "#", "confidence": 0.91}
+        ]
+        from shared.indexer import index
+        index(dummy)
+        print("indexed demo")
 
 if __name__ == "__main__":
-    import hashlib
-    run()
+    import sys
+    if len(sys.argv) > 1 and sys.argv[1] == "--demo":
+        demo(True)
